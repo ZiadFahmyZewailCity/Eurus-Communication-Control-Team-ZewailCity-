@@ -1,3 +1,6 @@
+//V1 Test 
+
+
 #include <Arduino.h>
 
 // int myFunction(int, int);
@@ -16,7 +19,7 @@ void setup() {
   pinMode(pin_PWM,OUTPUT);
 
   //SET POLARITY FROM THIS VARIABLE
-  digitalWrite(pin_DIR,LOW);
+  digitalWrite(pin_DIR,HIGH);
   analogWrite(pin_PWM,0);
 
 }
