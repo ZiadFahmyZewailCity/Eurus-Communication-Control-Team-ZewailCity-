@@ -19,7 +19,7 @@ void setup() {
   pinMode(pin_PWM,OUTPUT);
 
   //SET POLARITY FROM THIS VARIABLE
-  digitalWrite(pin_DIR,HIGH);
+  digitalWrite(pin_DIR,LOW);
   analogWrite(pin_PWM,0);
 
 }
