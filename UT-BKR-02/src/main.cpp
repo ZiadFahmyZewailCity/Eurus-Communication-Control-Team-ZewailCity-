@@ -14,6 +14,7 @@ void setup() {
 
   Serial.begin(9600);
 
+
   //Setting both pins to output 
   pinMode(pin_DIR,OUTPUT);
   pinMode(pin_PWM,OUTPUT);
@@ -21,6 +22,7 @@ void setup() {
   //SET POLARITY FROM THIS VARIABLE
   digitalWrite(pin_DIR,LOW);
   analogWrite(pin_PWM,0);
+  
 
 }
 
