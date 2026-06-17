@@ -6,38 +6,29 @@
 #define pin_DIR 8
 #define pin_PWM 9
 
-// --- EMPIRICAL MOTOR CONSTANTS ---
-// Tested: 6619 ticks for 3 revolutions
-#define TOTAL_CPR 2206
+// MOTOR GEAR RATIO
+// Updated to 2206 based on your physical test!
+#define TOTAL_CPR 2206 
 
-// --- BRAKING CALCULATION ---
-// Pulley Diameter: 20.5mm -> Circumference: 64.4mm
-// Travel needed: 15.0mm -> (15.0 / 64.4) = 0.2329 revolutions
-// Target Ticks: 0.2329 * 2206 = ~514 ticks
-#define TARGET_TICKS_15MM 514
+uint8_t pwmValue = 0;
+
+void updateEncoder();
 
 // volatile is required for variables modified inside an interrupt
 volatile long encoderCount = 0; 
-
-// A safe variable to use inside the main loop
 long safePosition = 0;
-
-// Timer variable to replace delay()
-unsigned long lastPrintTime = 0;
-
-// Function prototype required for strict C++ compilers (like PlatformIO)
-void updateEncoder();
+bool brakeEngaged = false;
+unsigned long lastPrintTime = 0; // Timer variable to replace delay()
 
 void setup() {
-  Serial.begin(115200); // Faster baud rate prevents printing from slowing down the motor loop
+  Serial.begin(9600); // Kept at 9600 since this works perfectly for your hardware!
   
-  // Setting interrupt pins 
-  // NOTE: This assumes you have PHYSICAL 4.7k pull-up resistors wired to 3.3V!
-  // If not, change these to INPUT_PULLUP
-  pinMode(pin_ENCA, INPUT);
-  pinMode(pin_ENCB, INPUT);
+  // Setting interrupt pins
+  // Added PULLUP to keep your signal clean
+  pinMode(pin_ENCA, INPUT_PULLUP);
+  pinMode(pin_ENCB, INPUT_PULLUP);
 
-  // Interrupt is triggered on RISING edge (1X decoding)
+  // Interrupt is triggered on RISING
   attachInterrupt(digitalPinToInterrupt(pin_ENCA), updateEncoder, RISING);
 
   // DRIVER PINS
@@ -45,41 +36,41 @@ void setup() {
   pinMode(pin_DIR, OUTPUT);
   pinMode(pin_PWM, OUTPUT);
 
-  // SET POLARITY FROM THIS VARIABLE (Start with motor off)
+  // SET POLARITY FROM THIS VARIABLE
   digitalWrite(pin_DIR, LOW);
   analogWrite(pin_PWM, 0);
-  
-  Serial.println("System Ready. Enter a PWM percentage (0-100):");
 }
 
-void loop() {
+void loop() 
+{
   int targetPercent = 0;
 
-  // --- FIX 1: THE ATOMIC READ & SAFE COMPARISON ---
-  // Safely copy the volatile variable without it changing mid-read
+  // --- 1. ATOMIC READ ---
+  // Safely grab the count so we don't read a corrupted number
   noInterrupts();
   safePosition = encoderCount;
   interrupts();
 
-  // Always use >= so it catches it even if it overshoots by a single tick!
-  if(safePosition >= TOTAL_CPR) {
-    analogWrite(pin_PWM, 0);
-    Serial.println("Revolved - Motor Stopped!");
+  // --- 2. INSTANT BRAKING ---
+  // Use >= so it NEVER misses the stop, even if it overshoots by a tick
+  if(safePosition >= TOTAL_CPR && !brakeEngaged)
+  {
+    pwmValue = 0;
+    analogWrite(pin_PWM, 0); // Actually turn off the motor pin!
+    Serial.println("\n*** Revolved - Motor Stopped! ***\n");
+    brakeEngaged = true; // Prevents it from spamming the serial monitor and crashing
   }
 
-  // --- FIX 2: AVOID THE DELAY ---
-  // This prints to the screen every 100ms WITHOUT stopping the loop.
-  // The loop runs continuously, allowing the brake check above to trigger instantly.
+  // --- 3. MATH & PRINTING (NO DELAYS) ---
+  // This prints every 100ms, allowing the loop to run instantly to catch the brake
   if (millis() - lastPrintTime >= 100) {
     
-    // --- CALCULATE DISPLACEMENTS ---
-    // Cast safePosition to a float to prevent integer division from rounding down to zero
+    // Math Calculations
     float revs = (float)safePosition / TOTAL_CPR; 
     float angularDisplacement = revs * 360.0;
-    float linearDisplacement = revs * 64.4; // 64.4 is the pulley circumference
+    float linearDisplacement = revs * 64.4; // 64.4mm is the pulley circumference
 
-    // Print all values to the Serial Monitor
-    Serial.print("Ticks: ");
+    Serial.print("Position: ");
     Serial.print(safePosition);
     Serial.print(" | Angle: ");
     Serial.print(angularDisplacement);
@@ -87,34 +78,39 @@ void loop() {
     Serial.print(linearDisplacement);
     Serial.println(" mm");
     
-    lastPrintTime = millis(); // Reset the stopwatch
+    lastPrintTime = millis();
   }
 
-  // --- 2. SERIAL COMMAND PARSING ---
-  if(Serial.available() > 0) {
-    targetPercent = Serial.parseInt();
-    
+  // --- 4. SERIAL INPUT ---
+  if(Serial.available() > 0){
+
     // Clear rest of the serial buffer 
-    while(Serial.available() > 0) {
+    targetPercent = Serial.parseInt();
+    while(Serial.available() > 0){
       Serial.read();
     }
-
-    if (targetPercent >= 0 && targetPercent <= 100) {
+      
+    if (targetPercent >= 0 && targetPercent <= 100)
+    {
       // takes the percentage and turns it to a PWM signal
-      uint8_t pwmValue = map(targetPercent, 0, 100, 0, 255);
+      pwmValue = map(targetPercent, 0, 100, 0, 255);
 
-      Serial.print("Setting Duty Cycle to: ");
-      Serial.print(targetPercent);
-      Serial.println("%");
+      Serial.print("% Duty Cycle: ");
+      Serial.println(targetPercent);
 
+      // Output signal
       analogWrite(pin_PWM, pwmValue);
-    } else {
-      Serial.println("Invalid input. Please enter 0 to 100.");
+      brakeEngaged = false; // Reset the brake so we can spin again
+
+    }
+    else
+    {
+      Serial.println("Invalid input");
     }
   }
 }
 
-// --- INTERRUPT SERVICE ROUTINE ---
+// ISR
 void updateEncoder() {
   // Read the state of Phase B to determine direction
   if (digitalRead(pin_ENCB) == HIGH) {
