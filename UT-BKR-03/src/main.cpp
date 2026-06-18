@@ -25,8 +25,8 @@ void setup() {
   
   // Setting interrupt pins
   // Added PULLUP to keep your signal clean
-  pinMode(pin_ENCA, INPUT_PULLUP);
-  pinMode(pin_ENCB, INPUT_PULLUP);
+  pinMode(pin_ENCA, INPUT);
+  pinMode(pin_ENCB, INPUT);
 
   // Interrupt is triggered on RISING
   attachInterrupt(digitalPinToInterrupt(pin_ENCA), updateEncoder, RISING);
