@@ -6,8 +6,7 @@
 #define pin_DIR 8
 #define pin_PWM 9
 
-// MOTOR GEAR RATIO
-// Updated to 2206 based on your physical test!
+//Based on a test
 #define TOTAL_CPR 2206 
 
 uint8_t pwmValue = 0;
@@ -18,10 +17,10 @@ void updateEncoder();
 volatile long encoderCount = 0; 
 long safePosition = 0;
 bool brakeEngaged = false;
-unsigned long lastPrintTime = 0; // Timer variable to replace delay()
+unsigned long lastPrintTime = 0; 
 
 void setup() {
-  Serial.begin(9600); // Kept at 9600 since this works perfectly for your hardware!
+  Serial.begin(9600); 
   
   // Setting interrupt pins
   // Added PULLUP to keep your signal clean

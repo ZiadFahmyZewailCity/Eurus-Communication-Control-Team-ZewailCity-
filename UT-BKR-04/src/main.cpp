@@ -55,9 +55,7 @@ void setup() {
 void loop() {
   unsigned long current_time = millis();
 
-  // ==========================================
-  // 1. 10ms CONTROL LOOP (Ts = 0.01s)
-  // ==========================================
+
   if (current_time - last_update_time >= (Ts * 1000)) {
     last_update_time = current_time;
 
