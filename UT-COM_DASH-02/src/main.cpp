@@ -26,7 +26,7 @@ int TEMPERATURE = 0;
 
 //Delay for timer
 unsigned long previousTransmissionTime = 0;
-unsigned long transmissionInterval = 15000;
+unsigned long transmissionInterval = 25000;
 
 //Number of samples taken
 long long int count_aggregated = 0;
@@ -101,6 +101,7 @@ void loop() {
 
         TEMPERATURE = 0;
         PITCH = 0;
+
         OUTPUT_POWER = 0;
         RPM = 0;
         count_aggregated = 0;
