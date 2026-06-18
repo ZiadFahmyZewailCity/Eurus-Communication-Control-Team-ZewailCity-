@@ -25,12 +25,11 @@ int RPM = 0;
 int TEMPERATURE = 0;
 
 //Delay for timer
-int previousTransmissionTime = 0;
-unsigned long int transmissionInterval = 15000; // 15 seconds in milliseconds
+unsigned long previousTransmissionTime = 0;
+unsigned long transmissionInterval = 15000;
 
 //Number of samples taken
 long long int count_aggregated = 0;
-
 
 //Functions takes the ssid & pass word and attempts to connect you to the internet
 bool connectingToWifi(const char* ssid, const char* pass)
@@ -43,54 +42,45 @@ bool connectingToWifi(const char* ssid, const char* pass)
     {
         return true;
     }
-    
 }
 
-
-
 void setup() {
-
     //Connecting to wifi 
     Serial.begin(115200);
-
 
     Serial.print("Connecting to wifi");
     WiFi.begin(ssid,password);
     while(!connectingToWifi(ssid,password))
     {
-        //The wifi will take a bit of time trying to connect to the router
         Serial.print(".");
-        //Dont use delays in the final product
         delay(500);
     }
-    Serial.print("Successfully connected\n");
+    Serial.print("\nSuccessfully connected\n");
 
     ThingSpeak.begin(me);
-
-
 }
 
 void loop() {
+    //Blocking Delay to reduce amount of summed variables 
+    delay(500);
 
     //Generate random values each loop to figure out what 
-    
     TEMPERATURE += random(0,90);
     PITCH += random(0,70);
     OUTPUT_POWER += random(0,1000);
     RPM += random(0,600);
     count_aggregated++;
 
+    unsigned long currentTime = millis();
 
-    //DO NOT USE THIS APPROACH IN THE REAL SYSTEM AS THIS LIMITS RUNNING TILL OVERFLOW
-    int currentTime = millis();
-
-    if(transmissionInterval <= (currentTime - transmissionInterval))
+    if(transmissionInterval <= (currentTime - previousTransmissionTime))
     {
-
-        float average_temp = TEMPERATURE/count_aggregated;
-        float  average_pitch = PITCH/count_aggregated;
-        float average_power = OUTPUT_POWER/count_aggregated;
-        float average_RPM = RPM/count_aggregated;
+        previousTransmissionTime = currentTime;
+        
+        float average_temp = (float)TEMPERATURE/(float)count_aggregated;
+        float average_pitch = (float)PITCH/(float)count_aggregated;
+        float average_power = (float)OUTPUT_POWER/(float)count_aggregated;
+        float average_RPM = (float)RPM/(float)count_aggregated;
 
         ThingSpeak.setField(ID_CHANNEL_TEMPERATURE,average_temp);
         ThingSpeak.setField(ID_CHANNEL_PITCH,average_pitch);
@@ -102,17 +92,17 @@ void loop() {
         if(HTTP_speakResponse == 200)
         {
             Serial.print("Sent Succefully\n");
-            Serial.printf("Sent Data -> RPM: %d | Temp: %d | Pitch: %d | Power: %d\n", RPM, TEMPERATURE, PITCH, OUTPUT_POWER);
+            Serial.printf("Sent Data -> RPM: %.2f | Temp: %.2f | Pitch: %.2f | Power: %.2f\n", average_RPM, average_temp, average_pitch, average_power);
         }
         else
         {
             Serial.print("Failed to send\n");
         }
 
+        TEMPERATURE = 0;
+        PITCH = 0;
+        OUTPUT_POWER = 0;
+        RPM = 0;
+        count_aggregated = 0;
     }
-
-
-
 }
-
-
