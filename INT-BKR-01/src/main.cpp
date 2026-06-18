@@ -24,6 +24,11 @@ unsigned long last_update_time = 0;
 unsigned long last_print_time = 0;
 
 
+//Update encoder decleration
+void updateEncoder();
+
+
+
 //Prevents over writes by disabling interrupts during read 
 //Reads voltaile encoder value directly
 long atomic_encoderRead()
@@ -56,12 +61,14 @@ float currentDerivative(float current, float previous)
 
 float controller_PD(float error, float derivative, float gain_proportional, float gain_derivative)
 {
-  float u_control = (gain_proportional * error) + (gain_derivative * derivative);
+  return (gain_proportional * error) + (gain_derivative * derivative);
 }
 
 
 
 void setup() {
+
+  Serial.begin(9600);
 
   // Encoder Pins
   pinMode(pin_ENCA, INPUT);
@@ -118,7 +125,27 @@ void loop() {
 
   }
 
-
+  // ==========================================
+  // 2. SERIAL COMMUNICATION
+  // ==========================================
+  if (Serial.available() > 0) {
+    String input = Serial.readStringUntil('\n');
+    input.trim();
+    
+    if (input.length() > 0) {
+      if (input.equalsIgnoreCase("r")) {
+        
+        // Let the control system drive it back to the original starting point
+        target_pos_rads = 0.0;
+        
+        Serial.println("-> Returning to physical zero point...");
+      } else {
+        target_pos_rads = input.toFloat();
+        Serial.print("-> Target set to: ");
+        Serial.println(target_pos_rads);
+      }
+    }
+  }
 
 
 

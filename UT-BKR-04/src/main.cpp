@@ -80,13 +80,6 @@ void loop() {
     // Constrain output to valid motor voltage range (-12V to +12V)
     float u_limited = constrain(u_control, -V_rated, V_rated);
 
-    // --- D. Actuation (Cytron MD10C) ---
-    
-    // Optional Deadband: Stop motor chatter if within ~0.01 rads (~0.5 degrees)
-    if (abs(error) < 0.01) {
-        u_limited = 0;
-    }
-
     // Determine Direction
     if (u_limited >= 0) {
       digitalWrite(pin_DIR, LOW);  
