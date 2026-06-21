@@ -12,14 +12,16 @@ const float V_rated = 12.0;
 const float Ts = 0.01;                   
 const unsigned long Ts_ms = 10; // Integer timer for embedded performance
 
-// PD Gains (Derived from Simulink for angular displacement)
+// PID Gains (Derived from Simulink for angular displacement)
 const float Kp = 4.101;   
 const float Kd = 0.0205;  
+const float Ki = 1.5;     // NEW: Conditional Integrator Gain (Tune as needed)
 
 // Control Variables
 float target_pos_rads = 0.0;       
 float current_pos_rads = 0.0;      
 float prev_error = 0.0;            
+float integral_sum = 0.0;          // NEW: Accumulator for the temporary integrator
 
 // Hardware Variables
 volatile long encoderCount = 0; 
@@ -51,15 +53,15 @@ float currentDerivative(float current, float previous) {
    return (current - previous) / Ts;
 }
 
-// Control effort calculation
-float controller_PD(float error, float derivative, float gain_proportional, float gain_derivative) {
-  return (gain_proportional * error) + (gain_derivative * derivative);
+// UPDATED: Control effort calculation now includes Integral term
+float controller_PID(float error, float derivative, float integral, float gain_p, float gain_d, float gain_i) {
+  return (gain_p * error) + (gain_d * derivative) + (gain_i * integral);
 }
 
 void setup() {
   Serial.begin(9600);
 
-  // Encoder Pins (Left as standard INPUT per request)
+  // Encoder Pins 
   pinMode(pin_ENCA, INPUT);
   pinMode(pin_ENCB, INPUT);
   attachInterrupt(digitalPinToInterrupt(pin_ENCA), updateEncoder, RISING);
@@ -91,29 +93,40 @@ void loop() {
     float current_angularDis = angularDisplacement(atomic_encoderRead(), TOTAL_CPR);
     float current_error = error(target_pos_rads, current_angularDis);
     float derivative = currentDerivative(current_error, prev_error);
-    float pd_output = controller_PD(current_error, derivative, Kp, Kd);
-    
-    float limited_pd_output = constrain(pd_output, -V_rated, V_rated);
+
+    // --- CONDITIONAL INTEGRATOR LOGIC ---
+    // Only integrate if stuck close to the target (between 0.02 and 0.2 rads)
+    if (abs(current_error) < 0.2 && abs(current_error) > 0.02) {
+        integral_sum += current_error * Ts;
+    } else {
+        // Reset if making a large movement OR if target is safely reached
+        integral_sum = 0.0;
+    }
+
+    // Calculate full PID output
+    float pid_output = controller_PID(current_error, derivative, integral_sum, Kp, Kd, Ki);
+    float limited_pid_output = constrain(pid_output, -V_rated, V_rated);
   
     // Determine Direction
-    if (pd_output >= 0) {
+    if (pid_output >= 0) {
       digitalWrite(pin_DIR, LOW);  
     } else {
       digitalWrite(pin_DIR, HIGH); 
     }
 
     // Map constrained voltage (0 to 12V) to PWM (0 to 255)
-    int pwmValue = map(abs(limited_pd_output) * 1000, 0, V_rated * 1000, 0, 255); 
+    int pwmValue = map(abs(limited_pid_output) * 1000, 0, V_rated * 1000, 0, 255); 
 
     // --- STICTION FEEDFORWARD & DEADBAND ---
-    int MIN_PWM = 20; // Ensure enough power to break physical gear friction
+    int MIN_PWM = 20; 
     
+    // Feedforward: Provide baseline power when controller is trying to move
     if (pwmValue > 0 && pwmValue < MIN_PWM) {
         pwmValue = MIN_PWM; 
     }
 
-    // Stop motor completely if within acceptable tolerance (~0.02 rads)
-    if (abs(current_error) < 0.02) {
+    // Deadband: Stop motor completely if within acceptable tolerance (~0.02 rads)
+    if (abs(current_error) <= 0.02) {
         pwmValue = 0;
     }
 
@@ -124,7 +137,7 @@ void loop() {
     // Update error for next iteration
     prev_error = current_error;
 
-    // --- DEBUG PRINTING (Correctly Scoped) ---
+    // --- DEBUG PRINTING ---
     static int printCounter = 0;
     printCounter++;
     
@@ -149,8 +162,10 @@ void loop() {
     input.trim();
     
     if (input.length() > 0) {
+      // CRITICAL: Wipe the integrator clean when a new command is received
+      integral_sum = 0.0; 
+
       if (input.equalsIgnoreCase("r")) {
-        // Let the control system drive it back to the original starting point
         target_pos_rads = 0.0;
         Serial.println("\n-> Returning to physical zero point...\n");
       } else {
@@ -163,7 +178,7 @@ void loop() {
   }
 }
 
-// ISR for encoder counting (Software flip retained for negative feedback)
+// ISR for encoder counting
 void updateEncoder() {
   if (digitalRead(pin_ENCB) == HIGH) {
     encoderCount--; 
