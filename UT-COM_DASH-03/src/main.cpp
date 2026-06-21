@@ -1,94 +1,108 @@
 #include <Arduino.h>
 #include "BluetoothSerial.h"
 
+// --- GROUP A PARAMETERS (2 Hz Master) ---
+float rpm         = 500;
+float power       = 800; // Watts
+float currentConv = 12.5;  
+float voltageConv = 24.0;  
+float currentRect = 16.5;  
+float voltageRect = 19.5;  
 
-//Dummy variables being sent
-//Group A
-float rpm = 310.0;
-//Group B
-float pitchAngle = 12.5;
-//Group C
+// --- GROUP B PARAMETER (1 Hz) ---
+float pitchAngle  = 12.5;
+
+// --- GROUP C PARAMETER (1/60 Hz) ---
 float temperature = 42.0;
-//Command signals from dashboard to turbine
+
+// Command signals 
 bool stopRequested = false;
 bool stopAck = false;
 
-
-//A work around for this should be found, will eventually run out of space
 unsigned long lastMasterTick = 0;
-//Sending intervals
 const unsigned long masterInterval = 500;
-//Tick Counter to keep track of when to append 
 unsigned int tickCounter = 0;
 
 BluetoothSerial SerialBT;
 
-//Function to generate random numbers for parameters
-void triggerSensorA() { rpm = 310.0 + random(-10, 11) * 0.1; }
+
+//Sensor data generators by group
+void triggerSensorA() { 
+  rpm = 310.0 + random(-10, 11) * 0.1; 
+
+  
+  voltageRect = 19.5 + random(-5, 6) * 0.1; 
+  currentRect = 16.5 + random(-4, 5) * 0.1; 
+
+  
+  voltageConv = 24.0 + random(-2, 3) * 0.1; 
+  //Trying to simulate some converter output
+  float inputPower = voltageRect * currentRect;
+  currentConv = (inputPower * 0.93) / voltageConv;
+
+  power = voltageConv * currentConv; 
+}
 void triggerSensorB() { pitchAngle = 12.5 + random(-5, 6) * 0.1; }
 void triggerSensorC() { temperature = 42.0 + random(-2, 3) * 0.1; }
-//Function to generate payload
-String generate_payLoad(const char& statusA, const char& statusB, const char& statusC, const float rpm, const float pitch, const float temp, const char stopACK)
+
+// PayLoad generator
+String generate_payLoad(char statusA, char statusB, char statusC, 
+                        float rpm, float pwr, float cConv, float vConv, float cRect, float vRect, 
+                        float pitch, float temp, bool isAck) 
 {
-  //TO DO: Double check i understand the stopACK syntax, i think its just a return based on what type of bool is in the stop ack vairable, but if thats the case i should be just able to place the variable 
-  //directly and when it gets turned into a string itll be either 0 || 1
-  return String("$EURUS") + "," + statusA + "," + statusB + "," + statusC + "," + String(rpm,1) + "," + String(pitch,1) + "," + String(temp,1) + "," + String(stopACK ? 1 : 0);
+  return String("$EURUS") + "," + 
+         statusA + "," + statusB + "," + statusC + "," + 
+         String(rpm, 1)   + "," + 
+         String(pwr, 1)   + "," + 
+         String(cConv, 2) + "," + 
+         String(vConv, 2) + "," + 
+         String(cRect, 2) + "," + 
+         String(vRect, 2) + "," + 
+         String(pitch, 1) + "," + 
+         String(temp, 1)  + "," + 
+         String(isAck ? 1 : 0);
 }
 
 void setup() {
-
-  //Configure Serial connection
-  Serial.begin(9600);
+  Serial.begin(9600); 
   SerialBT.begin("EURUS_COMHUB_ESP32");
-  Serial.println("Bluetooth Started");
-
+  Serial.println("Eurus Telemetry Bridge Online.");
 }
 
 void loop() {
 
-  //Reading command signals
-  if(SerialBT.available()){
-
-    //TO DO: Dont fully understand what these two lines do
+  if (SerialBT.available()) {
     String incoming = SerialBT.readStringUntil('\n');
-    //Maybe removed header
     incoming.trim();
 
-
-    //Stop Signal
-    if(incoming == "S"){
+    if (incoming == "S") {
       stopRequested = true;
       stopAck = true;
-      Serial.println("MANUAL STOP TRIGGERED");
-
+      Serial.println("SAFETY: MANUAL STOP TRIGGERED");
     }
-    //Reset Stop Signal
-    else if (incoming == "R"){
+    else if (incoming == "R") {
       stopRequested = false;
       stopAck = false;
-      Serial.println("RESET SENT, Breaks disengaged");
-
+      Serial.println("SAFETY: RESET SENT, Brakes disengaged");
     }
-
-
-
-
   }
-
 
   if (millis() - lastMasterTick >= masterInterval) {
     lastMasterTick = millis();
     tickCounter++;
 
+    // Group A (2 Hz)
     char statusA = 'A'; 
     triggerSensorA();
 
+    // Group B (1 Hz)
     char statusB = 'F'; 
     if (tickCounter % 2 == 0) {
       statusB = 'B'; 
       triggerSensorB();
     }
 
+    // Group C (1/60 Hz)
     char statusC = 'F'; 
     if (tickCounter % 120 == 0) {
       statusC = 'C'; 
@@ -96,11 +110,10 @@ void loop() {
       triggerSensorC();
     }
 
-    String payLoad = generate_payLoad(statusA,statusB,statusC,rpm,pitchAngle,temperature,stopAck);
-
+    String payLoad = generate_payLoad(statusA, statusB, statusC, 
+                                      rpm, power, currentConv, voltageConv, currentRect, voltageRect, 
+                                      pitchAngle, temperature, stopAck);
 
     SerialBT.println(payLoad);
-
   }
-
 }
