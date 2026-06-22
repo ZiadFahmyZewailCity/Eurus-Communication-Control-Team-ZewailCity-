@@ -8,7 +8,6 @@
 #define TXD2 17
 
 
-
 // --- GROUP A PARAMETERS (2 Hz Master) ---
 float rpm;     
 float power;
