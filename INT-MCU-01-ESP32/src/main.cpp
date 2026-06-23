@@ -60,12 +60,13 @@ String generate_payLoad(char statusA, char statusB, char statusC,
 void setup() {
   Serial.begin(9600); 
   Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);  
-  SerialBT.begin("EURUS_COMHUB_ESP32");
+  SerialBT.begin("Eurus Gateway");
   Serial.println("Eurus Telemetry Bridge Online.");
 }
 
 void loop() {
 
+  
   //Reading raw dataPacket from Arduino
   if(Serial2.available() >= sizeof(internal_payLoad)){
 
