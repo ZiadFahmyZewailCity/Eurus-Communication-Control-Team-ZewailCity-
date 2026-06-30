@@ -47,7 +47,7 @@ float currentSensor_measurment(currentSensors_ID_t ID)
     //Convert to current
     float raw_current = (voltage - zeroPoint_ADC)/senstivity;
 
-    //Current after applying filter
+    //Current after applying IIR filter 
     float newFiltered = (filterParameter*raw_current) + ((1.0f - filterParameter) * filteredValue);
 
     currentSensor_state[ID].filtered_current = newFiltered;

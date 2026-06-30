@@ -1,7 +1,8 @@
 
 
-//Just measure this 
 
-float configure()
+//Set voltage divider pin to input
+void voltage_PD_configure();
 
-float voltageMeasureValue();
+//Measure voltage value 
+float voltage_PD_MeasureValue();
