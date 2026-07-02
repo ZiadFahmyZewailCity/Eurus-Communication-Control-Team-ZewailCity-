@@ -9,11 +9,11 @@
 
 // --- TIMING CONSTANTS ---
 //Recall to decided sampl_internval accuratly later
-constexpr unsigned long SAMPLE_INTERVAL = 20;  
+constexpr unsigned long SAMPLE_INTERVAL = 250;  
 constexpr unsigned long REPORT_INTERVAL = 500;
 
 // --- MPPT TUNING ---
 //Double check the step size
-constexpr float MPPT_STEP = 0.01f;
-constexpr float MPPT_MIN_DUTY = 0.05f;
+constexpr float MPPT_STEP = 0.005f;
+constexpr float MPPT_MIN_DUTY = 0.15f;
 constexpr float MPPT_MAX_DUTY = 0.90f;

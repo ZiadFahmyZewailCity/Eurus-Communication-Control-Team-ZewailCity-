@@ -104,12 +104,12 @@ void loop() {
     lastSampleTime = millis();
 
     // A. Sample live currents
-    currentRect = rectifierCurrent.readCurrent();
+    currentRect = - rectifierCurrent.readCurrent();
     currentConv = converterCurrent.readCurrent(); 
 
     // B. Sample live voltages 
     voltageRect = rectifierVoltage.readVoltage();
-    voltageConv = converterVoltage.readVoltage();
+    voltageConv = - converterVoltage.readVoltage();
 
     // C. True instantaneous converter power
     power = voltageConv * currentConv;
@@ -145,7 +145,7 @@ void loop() {
       arduinoPayLoad_buffer.temperature = sum_temp / samplesTaken;
 
       // Solve MPPT step using stable averaged inputs
-      dutyCycle = MPPT(arduinoPayLoad_buffer.voltageConv, arduinoPayLoad_buffer.currentConv);
+      dutyCycle = MPPT(arduinoPayLoad_buffer.voltageRect, arduinoPayLoad_buffer.currentRect);
       
       // Drive Gate
       analogWrite(MPPT_PWM_PIN, (int)(dutyCycle * 255));
