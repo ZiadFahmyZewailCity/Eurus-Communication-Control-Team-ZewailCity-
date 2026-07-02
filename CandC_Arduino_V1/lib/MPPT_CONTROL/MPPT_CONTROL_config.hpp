@@ -1,7 +1,5 @@
 #include <Arduino.h>
-
-//PWM PIN
-constexpr uint8_t MPPT_PIN = 2;
+#include "pinDefinitions.hpp"
 
 //MPPT Parameters
 constexpr float MPPT_MIN_DUTY = 0.15f;

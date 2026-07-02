@@ -51,7 +51,7 @@ uint8_t computePWM(float dutyCycle)
     {
 
        //add the half to prevent trunking 
-       return (uint8_t)dutyCycle * 255.0f + 0.5f;
+       return (uint8_t)(dutyCycle * 255.0f + 0.5f);
 
     }
 }

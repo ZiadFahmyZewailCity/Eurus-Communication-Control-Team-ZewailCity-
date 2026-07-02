@@ -23,8 +23,8 @@ float differentialVoltage_measurment()
 
     //IIR Filter to remove high frequency changes
     filtered_voltage_VA = (filterParamerter * differentialVoltage_value_VA) + ((1.0 - filterParamerter) * filtered_voltage_VA);
-    filtered_voltage_VB = (filterParamerter * differentialVoltage_value_VA) + ((1.0 - filterParamerter) * filtered_voltage_VB);
+    filtered_voltage_VB = (filterParamerter * differentialVoltage_value_VB) + ((1.0 - filterParamerter) * filtered_voltage_VB);
 
-    return (differentialVoltage_value_VA - differentialVoltage_value_VB)* differentialVotlage_scaleFactor;
+    return (filtered_voltage_VA - filtered_voltage_VB)* differentialVotlage_scaleFactor;
 
 }

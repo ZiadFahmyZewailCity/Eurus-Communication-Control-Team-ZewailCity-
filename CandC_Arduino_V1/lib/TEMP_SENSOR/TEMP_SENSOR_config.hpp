@@ -1,10 +1,6 @@
 #pragma once
 #include <Arduino.h>
-
-
-
-constexpr uint8_t temperature_1_pin = 36;
-constexpr uint8_t temperature_2_pin = 36;
+#include "pinDefinitions.hpp"
 
 typedef enum {
 

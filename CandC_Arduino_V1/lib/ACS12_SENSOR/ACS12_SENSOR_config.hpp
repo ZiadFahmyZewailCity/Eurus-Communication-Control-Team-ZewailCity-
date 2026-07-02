@@ -1,10 +1,8 @@
 #pragma once
 
 #include <Arduino.h>
+#include "pinDefinitions.hpp"
 
-
-constexpr uint8_t pre_converter_pin = A0;
-constexpr uint8_t post_converter_pin = A1;
 
 constexpr float ACS712_20_SENSITIVITY = 0.100f;
 constexpr float ACS712_30_SENSITIVITY = 0.066f;

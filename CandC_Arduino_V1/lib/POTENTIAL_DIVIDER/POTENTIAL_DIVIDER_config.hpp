@@ -1,11 +1,8 @@
 #include <Arduino.h>
+#include "pinDefinitions.hpp"
 
 //Voltage value is highly dependent on reference voltage, make sure this is well tuned 
 constexpr float v_ref = 5.0;
-
-//Voltage Divider PIN configuration
-constexpr uint8_t voltageDividerPin = A3;
-
 
 //Resistors
 constexpr float R1_high_side = 47000.0f; 
