@@ -34,7 +34,7 @@ VoltageSensor rectifierVoltage(A2, VOLTAGE_DIVIDER_RATIO);
 VoltageSensor converterVoltage(A3, A4, 125.0f);
 
 // Current 1: Rectifier -> Pin A0 (5V Ref, 100mV/A 20A sensitivity)
-CurrentSensor rectifierCurrent(A0, 5.0f, ACS712_20_SENSITIVITY);
+CurrentSensor rectifierCurrent(A0 , 5.0f, ACS712_20_SENSITIVITY);
 
 // Current 2: Converter -> Pin A1 (5V Ref, 100mV/A 20A sensitivity)
 CurrentSensor converterCurrent(A1, 5.0f, ACS712_20_SENSITIVITY);
@@ -50,13 +50,48 @@ const unsigned long reportInterval = 500;
 // Instantaneous Live Values
 float rpm = 0, power = 0, currentConv = 0, voltageConv = 0, currentRect = 0, voltageRect = 0;
 float pitchAngle = 0, temperature = 0;
-float dutyCycle = 0.5f; 
+float dutyCycle = 0.7f; 
+
+
+// =================================================================
+// 35 kHz HARDWARE TIMER SETUP 
+// =================================================================
+void initMPPTPWM() {
+  pinMode(MPPT_PWM_PIN, OUTPUT);
+
+  // Clear Timer 4 control registers
+  TCCR4A = 0;
+  TCCR4B = 0;
+
+  // 1. Set Fast PWM mode (Mode 14), where TOP is defined by ICR4
+  // WGM43=1, WGM42=1, WGM41=1, WGM40=0
+  TCCR4A |= (1 << WGM41);
+  TCCR4B |= (1 << WGM42) | (1 << WGM43);
+
+  // 2. Enable Non-Inverting PWM on Channel A (Pin 6)
+  // COM4A1=1, COM4A0=0
+  TCCR4A |= (1 << COM4A1);
+
+  // 3. Set Prescaler to 1 (No prescaling, timer runs at 16 MHz)
+  // CS42=0, CS41=0, CS40=1
+  TCCR4B |= (1 << CS40);
+
+  // 4. Set TOP value for 35 kHz
+  // Formula: f_PWM = f_clk / (Prescaler * (1 + TOP))
+  // TOP = (16,000,000 / (1 * 35,000)) - 1 = 456.14
+  ICR4 = 456;
+
+  // 5. Initialize duty cycle to 0 output
+  OCR4A = 0; 
+}
+
 
 void setup() {
   Serial.begin(9600); 
   espSerial.begin(9600); 
 
-  pinMode(MPPT_PWM_PIN, OUTPUT);
+  // Initialize the 35 kHz hardware timer
+  initMPPTPWM();
 
   // 1. Initialize hardware pins
   converterCurrent.begin();
@@ -127,7 +162,6 @@ void loop() {
     samplesTaken++; 
   }
 
-
   // --- 2. TELEMETRY DISPATCH & MPPT EXECUTION (2Hz / 500ms) ---
   if (millis() - lastReportTime >= reportInterval) {
     lastReportTime = millis();
@@ -144,15 +178,15 @@ void loop() {
       arduinoPayLoad_buffer.pitchAngle  = sum_pitch / samplesTaken;
       arduinoPayLoad_buffer.temperature = sum_temp / samplesTaken;
 
-      // Solve MPPT step using stable averaged inputs
-      dutyCycle = MPPT(arduinoPayLoad_buffer.voltageRect, arduinoPayLoad_buffer.currentRect);
+      // Solve MPPT step using stable averaged inputs (Logic to be implemented)
+      // dutyCycle = ...; // Your MPPT algorithm updates this value (0.0 to 1.0)
       
-      // Drive Gate
-      analogWrite(MPPT_PWM_PIN, (int)(dutyCycle * 255));
+      // Drive Gate via Hardware Register
+      // Scale the 0.0 - 1.0 dutyCycle variable to the 0 - 456 timer resolution
+      OCR4A = (uint16_t)(dutyCycle * 456.0f);
 
       // Push raw binary struct to ESP32
       espSerial.write((uint8_t*)&arduinoPayLoad_buffer, sizeof(internal_payLoad)); 
-
 
       Serial.println("┌─── EURUS POWER BUS (500ms Averaged Frame) ───┐");
         
@@ -175,8 +209,8 @@ void loop() {
         Serial.print(arduinoPayLoad_buffer.temperature, 1); Serial.println(" °C");
 
         Serial.print("│ MPPT Drive    : "); 
-        Serial.print(dutyCycle * 100.0f, 1); Serial.print(" %   (PWM Gate: "); 
-        Serial.print((int)(dutyCycle * 255)); Serial.println(")");
+        Serial.print(dutyCycle * 100.0f, 1); Serial.print(" %   (OCR4A Gate: "); 
+        Serial.print(OCR4A); Serial.println(" / 456)");
 
         Serial.print("│ ESP32 E-Stop  : "); 
         Serial.println(arduinoPayLoad_buffer.brakeACK ? "[[ ENGAGED - BRAKING ]]" : "CLEAR [OK]");
@@ -189,8 +223,6 @@ void loop() {
       sum_rpm = 0; sum_power = 0; sum_cConv = 0; sum_vConv = 0; 
       sum_cRect = 0; sum_vRect = 0; sum_pitch = 0; sum_temp = 0;
       samplesTaken = 0;
-
-
     }
   }
 }
