@@ -12,12 +12,11 @@ bool currentSensor_calibrate_blocking(currentSensors_ID_t ID)
     //Read from ROM 
     uint8_t currentSensorPin = currentSensor_config[ID].pin;
     
-    //Take an average of samples when floating
-    double samples = 0;
-    for(int i = 0; i < 500; i++)
-    {
-        float samples =+ analogRead(currentSensorPin);
-        delay(2);
+
+    float samples = 0; 
+    for (int i = 0; i < 500; i++) {
+        
+        samples += analogRead(currentSensorPin); 
     }
 
     //Attach the zero value to the currentSensor struct

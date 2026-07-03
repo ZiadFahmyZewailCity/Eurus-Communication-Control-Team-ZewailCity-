@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 #include "ACS12_SENSOR_config.hpp"
 
 

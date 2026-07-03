@@ -1,7 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "pinDefinitions.hpp"
-
+#include "../../include/pinDefinitions.hpp"
 //Encoder CPR
 constexpr float TOTAL_CPR = 2206.0f;
 //Motor Voltage

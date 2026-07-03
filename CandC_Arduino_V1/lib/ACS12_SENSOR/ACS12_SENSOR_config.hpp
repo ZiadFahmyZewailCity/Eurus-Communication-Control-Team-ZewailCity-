@@ -1,8 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "pinDefinitions.hpp"
-
+#include "../../include/pinDefinitions.hpp"
 
 constexpr float ACS712_20_SENSITIVITY = 0.100f;
 constexpr float ACS712_30_SENSITIVITY = 0.066f;

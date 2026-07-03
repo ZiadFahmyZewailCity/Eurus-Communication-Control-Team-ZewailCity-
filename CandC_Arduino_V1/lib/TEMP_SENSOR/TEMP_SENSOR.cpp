@@ -18,11 +18,12 @@ static uint16_t getConversionTimeMs(uint8_t resolution) {
     }
 }
 
-void tempSensor_config(tempSensors_ID_t ID) {
+void init_tempSensor(tempSensors_ID_t ID) {
     if (ID >= TEMP_SENSOR_COUNT) return;
 
     // Allocate library objects once using the pin from the config array
     if (oneWire_buses[ID] == nullptr) {
+        // FIXED: Changed init_tempSensor to tempSensor_config
         oneWire_buses[ID] = new OneWire(tempSensor_config[ID].pin);
         sensor_instances[ID] = new DallasTemperature(oneWire_buses[ID]);
     }
@@ -30,6 +31,7 @@ void tempSensor_config(tempSensors_ID_t ID) {
     sensor_instances[ID]->begin();
     
     // Set the configured resolution (9 to 12 bits)
+    // FIXED: Changed init_tempSensor to tempSensor_config
     sensor_instances[ID]->setResolution(tempSensor_config[ID].resolution);
     
     // CRITICAL: Disable blocking delay in the library
@@ -57,6 +59,7 @@ float tempSensor_measurment(tempSensors_ID_t ID) {
 
     if (tempSensor_state[ID].is_converting) {
         
+        // FIXED: Changed init_tempSensor to tempSensor_config
         uint16_t delay_required = getConversionTimeMs(tempSensor_config[ID].resolution);
 
         // Check if the required conversion time has elapsed
@@ -72,6 +75,7 @@ float tempSensor_measurment(tempSensors_ID_t ID) {
                 if (tempSensor_state[ID].temp_filtered == 0.0f) {
                     tempSensor_state[ID].temp_filtered = raw_temp;
                 } else {
+                    // FIXED: Changed init_tempSensor to tempSensor_config
                     float w = tempSensor_config[ID].filterWeight;
                     tempSensor_state[ID].temp_filtered = (raw_temp * w) + (tempSensor_state[ID].temp_filtered * (1.0f - w));
                 }

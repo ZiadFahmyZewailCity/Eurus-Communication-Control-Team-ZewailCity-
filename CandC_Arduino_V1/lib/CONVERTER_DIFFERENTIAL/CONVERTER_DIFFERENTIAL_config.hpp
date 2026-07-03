@@ -1,5 +1,7 @@
+#pragma once 
+
 #include <Arduino.h>
-#include "pinDefinitions.hpp"
+#include "../../include/pinDefinitions.hpp"
 
 constexpr float v_ref = 5.0;
 

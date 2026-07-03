@@ -1,6 +1,6 @@
+#pragma once
 #include <Arduino.h>
-#include "pinDefinitions.hpp"
-
+#include "../../include/pinDefinitions.hpp"
 //Voltage value is highly dependent on reference voltage, make sure this is well tuned 
 constexpr float v_ref = 5.0;
 

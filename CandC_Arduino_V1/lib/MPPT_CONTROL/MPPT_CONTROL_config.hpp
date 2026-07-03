@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "pinDefinitions.hpp"
+#include "../../include/pinDefinitions.hpp"
 
 //MPPT Parameters
 constexpr float MPPT_MIN_DUTY = 0.15f;

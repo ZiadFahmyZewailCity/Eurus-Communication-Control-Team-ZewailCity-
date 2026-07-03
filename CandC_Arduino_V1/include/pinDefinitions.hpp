@@ -14,7 +14,7 @@ constexpr uint8_t pin_PWM  = 8;
 //MPPT
 constexpr uint8_t MPPT_PIN = 6;
 //Current Sensor pins
-constexpr uint8_t pre_converter_pin  = A0;
+constexpr uint8_t pre_converter_pin  = A0; 
 constexpr uint8_t post_converter_pin = A1;
 //Rectifier voltage divider pin
 constexpr uint8_t voltageDividerPin = A2;

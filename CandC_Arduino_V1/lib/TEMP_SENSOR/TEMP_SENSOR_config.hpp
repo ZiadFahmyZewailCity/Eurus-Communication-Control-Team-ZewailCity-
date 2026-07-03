@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
-#include "pinDefinitions.hpp"
+#include "../../include/pinDefinitions.hpp"\
+
 
 typedef enum {
 
