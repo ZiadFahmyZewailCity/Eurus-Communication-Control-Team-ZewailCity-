@@ -20,7 +20,7 @@ constexpr uint8_t post_converter_pin = A1;
 constexpr uint8_t voltageDividerPin = A2;
 //Converter Differential Voltage pins
 constexpr uint8_t differentialVoltage_VA_PIN = A3;
-constexpr uint8_t differentialVoltage_VB_PIN = A5;
+constexpr uint8_t differentialVoltage_VB_PIN = A4;
 
 //Temperature pins
 constexpr uint8_t temperature_1_pin = 36; 

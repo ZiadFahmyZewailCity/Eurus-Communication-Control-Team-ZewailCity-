@@ -153,13 +153,20 @@ void loop() {
       arduinoPayLoad_buffer.pitchAngle  = sum_pitch / samplesTaken;
       arduinoPayLoad_buffer.temperature = sum_temp / samplesTaken;
 
-      //MPPT 
-      dutyCycle = MPPT(arduinoPayLoad_buffer.voltageRect, arduinoPayLoad_buffer.currentRect);
-      analogWrite(MPPT_PIN, computePWM(dutyCycle));
+      //MPPT - Decimated to run every 5th frame (2.5 seconds) for mechanical inertia
+      static uint8_t mpptTick = 0;
+      static uint16_t timerGateValue = 0; // Statically holds the last value for telemetry prints
+      mpptTick++;
+
+      if (mpptTick >= 5) {
+          dutyCycle = MPPT(arduinoPayLoad_buffer.voltageRect, arduinoPayLoad_buffer.currentRect);
+          timerGateValue = computeTimerOCR(dutyCycle);
+          applyPWM(timerGateValue);
+          mpptTick = 0; // Reset counter
+      }
 
       // Push raw binary struct to ESP32
       espSerial.write((uint8_t*)&arduinoPayLoad_buffer, sizeof(internal_payLoad));
-
 
       Serial.println("┌─── EURUS POWER BUS (500ms Averaged Frame) ───┐");
 
@@ -182,14 +189,15 @@ void loop() {
         Serial.print(arduinoPayLoad_buffer.temperature, 1); Serial.println(" °C");
 
         Serial.print("│ MPPT Drive    : ");
-        Serial.print(dutyCycle * 100.0f, 1); Serial.print(" %   (PWM Gate: ");
-        Serial.print(computePWM(dutyCycle)); Serial.println(")");
+        Serial.print(dutyCycle * 100.0f, 1); Serial.print(" %   (Timer Gate: ");
+        Serial.print(timerGateValue); Serial.print(" / "); Serial.print(MPPT_TIMER_TOP); Serial.println(")");
 
         Serial.print("│ Brake Status  : ");
         if (!brakeEngaged) {
           Serial.println("CLEAR [OK]");
         } else {
           Serial.print("[[ ENGAGED ]]  pos=");
+          // Note: ensure getPosition() and getError() are correctly imported in main.cpp
           Serial.print(getPosition(), 3);
           Serial.print(" rad  err=");
           Serial.print(getError(), 3);
