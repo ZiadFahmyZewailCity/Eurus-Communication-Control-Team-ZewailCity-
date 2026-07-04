@@ -25,11 +25,15 @@ float sum_pitch = 0, sum_temp = 0;
 unsigned int samplesTaken = 0;
 
 // TIMING CLOCKS
+// Sensor Sampling time
 unsigned long lastSampleTime = 0;
 const unsigned long sampleInterval = 20;
-
+// Averaging Sampling time
 unsigned long lastReportTime = 0;
 const unsigned long reportInterval = 500;
+// Braking Control Loop Stop
+unsigned long lastBrakeTime = 0;
+const unsigned long allowableBrakingInterval = 1000 * 10;
 
 // Instantaneous Live Values
 float rpm = 0, power = 0, currentConv = 0, voltageConv = 0, currentRect = 0, voltageRect = 0, pitchAngle = 0, temperature = 0, dutyCycle = 0.5f; 
@@ -84,20 +88,18 @@ void loop() {
     char cmd = espSerial.read();
     if (cmd == 'S' && !brakeEngaged) {
       arduinoPayLoad_buffer.brakeACK = 1;
-      brakeEngaged = true;   // latched: braking loop now runs every pass below,
-                              // no release/disengage path is exposed by the module
-      Serial.println(">>> E-STOP COMMAND VERIFIED FROM ESP32 — BRAKE ENGAGED <<<");
+      brakeEngaged = true;   
+                              
+      Serial.println("Stop Engaged and validated");
     }
   }
 
-  // --- 1. BRAKE CONTROL LOOP ---
-  // Runs every pass once engaged. updateBrakingLoop() self-paces internally
-  // to samplingTime (10ms), so calling it every loop() pass is safe and correct.
+  //Braking control loop
   if (brakeEngaged) {
     updateBrakingLoop();
   }
 
-  // --- 2. HIGH-SPEED SENSOR SAMPLING (50Hz / 20ms) ---
+  // Sampling at 20hz
   if (millis() - lastSampleTime >= sampleInterval) {
     lastSampleTime = millis();
 
@@ -137,7 +139,7 @@ void loop() {
   }
 
 
-  //Telemetry
+  //Telemetry at 2hz
   if (millis() - lastReportTime >= reportInterval) {
     lastReportTime = millis();
 
@@ -153,7 +155,8 @@ void loop() {
       arduinoPayLoad_buffer.pitchAngle  = sum_pitch / samplesTaken;
       arduinoPayLoad_buffer.temperature = sum_temp / samplesTaken;
 
-      //MPPT - Decimated to run every 5th frame (2.5 seconds) for mechanical inertia
+      //MPPT 
+      // -------
       static uint8_t mpptTick = 0;
       static uint16_t timerGateValue = 0; // Statically holds the last value for telemetry prints
       mpptTick++;
@@ -164,10 +167,13 @@ void loop() {
           applyPWM(timerGateValue);
           mpptTick = 0; // Reset counter
       }
+      // -------
 
+      // Send data to ESP32
       // Push raw binary struct to ESP32
       espSerial.write((uint8_t*)&arduinoPayLoad_buffer, sizeof(internal_payLoad));
 
+      //DEBUGGING WINDOW
       Serial.println("┌─── EURUS POWER BUS (500ms Averaged Frame) ───┐");
 
         Serial.print("│ Rectifier In  : ");

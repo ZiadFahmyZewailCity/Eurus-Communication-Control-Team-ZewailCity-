@@ -57,6 +57,8 @@ float RPM_ENCODER_getValue(void)
     //Set new reference point to last time
     lastTime_ms = currentTime_ms;
 
-    return ((float)current_pulses/ RPM_ENCODER_PPR) * (60000.0f / deltaTime_ms);
+    float RPM_unratioed = ((float)current_pulses/ RPM_ENCODER_PPR) * (60000.0f / deltaTime_ms);
+
+    return RPM_unratioed * RPM_PULLEY_RATIO;
 
 }
