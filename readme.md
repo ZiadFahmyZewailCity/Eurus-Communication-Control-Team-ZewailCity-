@@ -1,0 +1,3 @@
+This is the code repository for the Eurus 2026 Communication and Control Team, Each branch contains the code of the Team
+
+![Eurus Logo](./Eurus_logo.jfif)
