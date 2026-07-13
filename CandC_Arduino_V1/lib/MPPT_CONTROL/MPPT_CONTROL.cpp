@@ -31,28 +31,33 @@ void configureMPPT(){
 }
 
 float MPPT(float V, float I) {
+
+  
+  if (I < 0.30f) { 
+    I = 0.0f; 
+  }
+
   float P = V * I;
   float dV = V - V_old;
   float dP = P - P_old;
   float D = D_old;
 
-  // Realistic noise deadbands based on 10-bit ADC and ACS712 resolution
-  // Require at least 0.5W change and 0.2V change to confidently act
   if (abs(dP) > 0.50f && abs(dV) > 0.20f) { 
     
     if (dP > 0) {
-      // Power went UP. Keep going in the same voltage direction.
       if (dV > 0) {
-        D = D_old - MPPT_STEP; // To increase V_in, decrease load (Duty Cycle)
+        D = D_old - MPPT_STEP; 
       } else {
-        D = D_old + MPPT_STEP; // To decrease V_in, increase load (Duty Cycle)
+        D = D_old + MPPT_STEP; 
       }
     } else {
-      // Power went DOWN. Reverse the voltage direction.
       if (dV > 0) {
-        D = D_old + MPPT_STEP; // V_in went up, P went down. Need to decrease V_in.
+        D = D_old + MPPT_STEP; 
       } else {
-        D = D_old - MPPT_STEP; // V_in went down, P went down. Need to increase V_in.
+        // 2. Stall Recovery Fix: Asymmetric stepping
+        // If V and P are dropping, the turbine is stalling. 
+        // 0.5% is too slow. Kick the load off rapidly to let the rotor recover.
+        D = D_old - (MPPT_STEP * 5.0f); 
       }
     }
   }
@@ -79,6 +84,7 @@ uint16_t computeTimerOCR(float dutyCycle)
        return (uint16_t)(dutyCycle * (float)MPPT_TIMER_TOP + 0.5f);
     }
 }
+
 
 void applyPWM(uint16_t ocrValue) {
     OCR4A = ocrValue; 

@@ -13,7 +13,7 @@ constexpr float kp = 4.101f;
 constexpr float kd = 0.0205f;
 
 //Target Displacement
-constexpr float TARGET_POS_RADS = 5.0f;
+constexpr float TARGET_POS_RADS = -7.0f;
 
 //Configure as needed 
 //Whatever is considered to be forward and backward change 

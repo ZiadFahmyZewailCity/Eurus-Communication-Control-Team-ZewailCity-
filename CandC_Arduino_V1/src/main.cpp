@@ -33,17 +33,20 @@ unsigned long lastReportTime = 0;
 const unsigned long reportInterval = 500;
 // Braking Control Loop Stop
 unsigned long lastBrakeTime = 0;
-const unsigned long allowableBrakingInterval = 1000 * 10;
+const unsigned long allowableBrakingInterval = 1000 * 7;
 
 // Instantaneous Live Values
 float rpm = 0, power = 0, currentConv = 0, voltageConv = 0, currentRect = 0, voltageRect = 0, pitchAngle = 0, temperature = 0, dutyCycle = 0.5f; 
 
 //Brakes intiall
 bool brakeEngaged = false;
+bool driverDeactivated = false;
+
 
 void setup() {
   //For debuggin, connect via USB
-  Serial.begin(9600);       
+  
+  Serial.begin(115200);       
   espSerial.begin(9600);    
 
   //Intialization
@@ -83,20 +86,28 @@ void setup() {
 
 void loop() {
 
-  // --- 0. LISTEN FOR ESP32 EMERGENCY BRAKE ---
-  if (espSerial.available() > 0) {
+  //ESP BREAK CHECK (POLLING)
+  while(espSerial.available() > 0) {
     char cmd = espSerial.read();
     if (cmd == 'S' && !brakeEngaged) {
       arduinoPayLoad_buffer.brakeACK = 1;
       brakeEngaged = true;   
-                              
+      driverDeactivated = false; 
+      lastBrakeTime = millis();
       Serial.println("Stop Engaged and validated");
     }
   }
 
   //Braking control loop
   if (brakeEngaged) {
-    updateBrakingLoop();
+    if (millis() - lastBrakeTime < 7000) {
+      updateBrakingLoop();
+    } 
+    else if (!driverDeactivated) {
+      stopBrakeMotorDriver(); 
+      driverDeactivated = true;
+      Serial.println("7 Second limit reached. Driver deactivated.");
+    }
   }
 
   // Sampling at 20hz
@@ -105,14 +116,11 @@ void loop() {
 
     //Current measurmnets
     currentRect = -currentSensor_measurment(SENSOR_1);
-    currentConv = currentSensor_measurment(SENSOR_2);
+    currentConv = -currentSensor_measurment(SENSOR_2);
 
     //Voltage Measurments
     voltageRect = voltage_PD_MeasureValue();
     voltageConv = -differentialVoltage_measurment();
-
-    //RPM Speed
-    rpm = RPM_ENCODER_getValue();
 
     //Instantanous power 
     power = voltageConv * currentConv;
@@ -126,7 +134,6 @@ void loop() {
     temperature = (temp1 + temp2) * 0.5f;
 
     // Bucket accumulation
-    sum_rpm   += rpm;
     sum_power += power;
     sum_cConv += currentConv;
     sum_vConv += voltageConv;
@@ -146,7 +153,7 @@ void loop() {
     if (samplesTaken > 0) {
 
       // Compute arithmetic means over the sample window
-      arduinoPayLoad_buffer.rpm         = sum_rpm / samplesTaken;
+      arduinoPayLoad_buffer.rpm = RPM_ENCODER_getValue();
       arduinoPayLoad_buffer.power       = sum_power / samplesTaken;
       arduinoPayLoad_buffer.currentConv = sum_cConv / samplesTaken;
       arduinoPayLoad_buffer.voltageConv = sum_vConv / samplesTaken;
@@ -162,10 +169,13 @@ void loop() {
       mpptTick++;
 
       if (mpptTick >= 5) {
-          dutyCycle = MPPT(arduinoPayLoad_buffer.voltageRect, arduinoPayLoad_buffer.currentRect);
-          timerGateValue = computeTimerOCR(dutyCycle);
-          applyPWM(timerGateValue);
-          mpptTick = 0; // Reset counter
+          
+          //MPPT(arduinoPayLoad_buffer.voltageRect,arduinoPayLoad_buffer.currentRect);
+          dutyCycle = computeTimerOCR(400);
+          applyPWM(dutyCycle);
+
+          dutyCycle = (float)timerGateValue / MPPT_TIMER_TOP; 
+          mpptTick = 0;
       }
       // -------
 
@@ -215,7 +225,7 @@ void loop() {
 
 
       // Reset buckets
-      sum_rpm = 0; sum_power = 0; sum_cConv = 0; sum_vConv = 0;
+      sum_power = 0; sum_cConv = 0; sum_vConv = 0;
       sum_cRect = 0; sum_vRect = 0; sum_pitch = 0; sum_temp = 0;
       samplesTaken = 0;
 

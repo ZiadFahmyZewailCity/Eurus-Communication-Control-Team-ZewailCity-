@@ -32,8 +32,6 @@ void configureBrakeSystem(void)
 
 }
 
-
-
 float getPosition()
 {
     return current_pos_rads;
@@ -63,29 +61,45 @@ void updateBrakingLoop(){
 
     //Get current position given the previous snapshot of the position
     current_pos_rads = ((float)brakePosition / TOTAL_CPR) * 2.0f * PI;
+    
     //Error computing
     float error = target_pos_rads - current_pos_rads;
+
+    // ------------------------------------------------------------------
+    // FIX A: THE DEADBAND
+    // If the error is less than 0.1 radians (~5.7 degrees), cut power.
+    // Adjust this tolerance value depending on how tight the brake needs to be!
+    // ------------------------------------------------------------------
+    float tolerance = 0.1f; 
+    if (abs(error) < tolerance) {
+        analogWrite(pin_PWM, 0); // Immediately cut power to the motor
+        prev_error = error;      // Keep the derivative term stable for the next loop
+        return;                  // Exit the function so it doesn't compute a reverse drive
+    }
+
     //Derivative of the error
     float derivative = (error - prev_error) / samplingTime;
 
     //Control System output
     float controlSystemOutput = (kp * error) + (kd * derivative);
+    
     //Constrain Voltage output 
     float constrainedOutput = constrain(controlSystemOutput, -v_rated, v_rated);
 
     //Identify direction
     if (constrainedOutput >= 0){
-
-        digitalWrite(pin_DIR,FORWARD);
+        digitalWrite(pin_DIR, FORWARD);
     }
     else
     {
-        digitalWrite(pin_DIR,BACKWARD);
+
+        digitalWrite(pin_DIR, BACKWARD);
     }
 
-    int pwmValue = map(abs(constrainedOutput) * 1000,0,v_rated*1000,0,255);
+    // Map to PWM
+    int pwmValue = map(abs(constrainedOutput) * 1000, 0, v_rated * 1000, 0, 255);
 
-    analogWrite(pin_PWM,pwmValue);
+    analogWrite(pin_PWM, pwmValue);
     prev_error = error;
 }
 
@@ -99,4 +113,9 @@ void updateEncoder(){
     }
 
 
+}
+
+void stopBrakeMotorDriver(void) {
+    analogWrite(pin_PWM, 0);
+    digitalWrite(pin_DIR, LOW);
 }

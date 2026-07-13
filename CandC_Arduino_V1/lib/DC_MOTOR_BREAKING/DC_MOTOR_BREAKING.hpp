@@ -10,6 +10,9 @@ void configureBrakeSystem(void);
 //Call this every loop
 void updateBrakingLoop(void);
 
+//Brake
+void stopBrakeMotorDriver(void);
+
 //Return position & Error
 float getPosition();
 float getError();
