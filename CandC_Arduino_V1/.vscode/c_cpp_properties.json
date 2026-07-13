@@ -1,0 +1,76 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
+{
+    "configurations": [
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/include",
+                "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/src",
+                "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/TEMP_SENSOR",
+                "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/RPM_ENCODER",
+                "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/POTENTIAL_DIVIDER",
+                "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/MPPT_CONTROL",
+                "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/DC_MOTOR_BREAKING",
+                "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/CONVERTER_DIFFERENTIAL",
+                "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/ACS12_SENSOR",
+                "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/.pio/libdeps/megaatmega2560/DallasTemperature",
+                "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/.pio/libdeps/megaatmega2560/OneWire",
+                "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/cores/arduino",
+                "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/variants/mega",
+                "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/AdjustableFan",
+                "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
+                "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/libraries/HID/src",
+                "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
+                "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
+                "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/include",
+                    "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/src",
+                    "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/TEMP_SENSOR",
+                    "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/RPM_ENCODER",
+                    "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/POTENTIAL_DIVIDER",
+                    "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/MPPT_CONTROL",
+                    "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/DC_MOTOR_BREAKING",
+                    "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/CONVERTER_DIFFERENTIAL",
+                    "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/ACS12_SENSOR",
+                    "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/.pio/libdeps/megaatmega2560/DallasTemperature",
+                    "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/.pio/libdeps/megaatmega2560/OneWire",
+                    "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/cores/arduino",
+                    "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/variants/mega",
+                    "C:/Users/Ziad/Desktop/Academic/Competitions/Eurus 2026/Code/Eurus-Communication-Control-Team-ZewailCity-/CandC_Arduino_V1/lib/AdjustableFan",
+                    "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
+                    "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/libraries/HID/src",
+                    "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
+                    "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
+                    "C:/Users/Ziad/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=60119",
+                "ARDUINO_AVR_MEGA2560",
+                "F_CPU=16000000L",
+                "ARDUINO_ARCH_AVR",
+                "ARDUINO=10808",
+                "__AVR_ATmega2560__",
+                ""
+            ],
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
+            "compilerPath": "C:/Users/Ziad/.platformio/packages/toolchain-atmelavr/bin/avr-gcc.exe",
+            "compilerArgs": [
+                "-mmcu=atmega2560",
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}
